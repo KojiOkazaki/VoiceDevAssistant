@@ -17,6 +17,14 @@ class CameraViewModel: ObservableObject {
     @Published var showError: Bool = false
     @Published var errorMessage: String = ""
 
+    // MARK: - AI Analysis Properties
+
+    @Published var analysisResult: String = ""
+    @Published var isAnalyzing: Bool = false
+    @Published var selectedMode: AnalysisMode = .general
+    @Published var showAPIKeyInput: Bool = false
+    @Published var apiKeyInput: String = ""
+
     // MARK: - Private Properties
 
     private var streamSession: StreamSession?
@@ -220,6 +228,52 @@ class CameraViewModel: ObservableObject {
                     UIImageWriteToSavedPhotosAlbum(image, nil, nil, nil)
                 }
             }
+        }
+    }
+
+    // MARK: - Step 8: AI画像分析 (OpenAI Vision API)
+
+    func analyzeCurrentFrame() {
+        guard let image = currentFrame else {
+            showError(message: "分析する画像がありません。カメラストリームを開始してください。")
+            return
+        }
+
+        guard !isAnalyzing else { return }
+        isAnalyzing = true
+        analysisResult = "分析中..."
+
+        Task {
+            do {
+                let result = try await OpenAIService.shared.analyzeImage(image, mode: selectedMode)
+                self.analysisResult = result
+            } catch let error as OpenAIError where error.errorDescription?.contains("APIキー") == true {
+                self.analysisResult = ""
+                self.showAPIKeyInput = true
+            } catch {
+                self.analysisResult = ""
+                self.showError(message: "AI分析エラー: \(error.localizedDescription)")
+            }
+            self.isAnalyzing = false
+        }
+    }
+
+    func saveAPIKey() {
+        let key = apiKeyInput.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !key.isEmpty else { return }
+
+        Task {
+            await OpenAIService.shared.setAPIKey(key)
+            showAPIKeyInput = false
+            // キー保存後に自動で分析を開始
+            analyzeCurrentFrame()
+        }
+    }
+
+    func loadAPIKey() {
+        Task {
+            let key = await OpenAIService.shared.apiKey
+            self.apiKeyInput = key
         }
     }
 
