@@ -1,6 +1,10 @@
 import SwiftUI
+#if canImport(MWDATCore)
 import MWDATCore
+#endif
+#if canImport(MWDATCamera)
 import MWDATCamera
+#endif
 
 struct ContentView: View {
     @StateObject private var viewModel = CameraViewModel()

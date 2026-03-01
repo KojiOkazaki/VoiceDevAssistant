@@ -1,8 +1,12 @@
 import Foundation
 import SwiftUI
 import Combine
+#if canImport(MWDATCore)
 import MWDATCore
+#endif
+#if canImport(MWDATCamera)
 import MWDATCamera
+#endif
 
 @MainActor
 class CameraViewModel: ObservableObject {
@@ -27,7 +31,9 @@ class CameraViewModel: ObservableObject {
 
     // MARK: - Private Properties
 
+    #if canImport(MWDATCamera)
     private var streamSession: StreamSession?
+    #endif
     private var deviceSessionStateToken: Any?
     private var deviceMetadataToken: Any?
     private var cancellables = Set<AnyCancellable>()
@@ -36,6 +42,7 @@ class CameraViewModel: ObservableObject {
     // MARK: - Step 4: アプリから登録を開始する
 
     func startRegistration() {
+        #if canImport(MWDATCore)
         Task {
             do {
                 try await Wearables.shared.startRegistration()
@@ -45,11 +52,15 @@ class CameraViewModel: ObservableObject {
                 showError(message: "登録に失敗しました: \(error.localizedDescription)")
             }
         }
+        #else
+        showError(message: "MWDAT SDK が追加されていません。Xcode で Swift Package を追加してください。")
+        #endif
     }
 
     // MARK: - デバイスの監視
 
     private func observeDevices() {
+        #if canImport(MWDATCore)
         Task {
             let wearables = Wearables.shared
 
@@ -64,11 +75,13 @@ class CameraViewModel: ObservableObject {
                 }
             }
         }
+        #endif
     }
 
     // MARK: - デバイスセッション状態の監視
 
     private func observeDeviceSessionState(deviceId: String) {
+        #if canImport(MWDATCore)
         Task {
             let token = await Wearables.shared.addDeviceSessionStateListener(
                 forDeviceId: deviceId,
@@ -81,13 +94,13 @@ class CameraViewModel: ObservableObject {
                             self.isStreaming = true
                         case .paused:
                             self.sessionState = "PAUSED"
-                            // 一時停止中はデバイスセッションの再開を試みない
                         case .stopped:
                             self.sessionState = "STOPPED"
                             self.isStreaming = false
                             self.currentFrame = nil
-                            // リソース解放
+                            #if canImport(MWDATCamera)
                             self.streamSession = nil
+                            #endif
                         default:
                             break
                         }
@@ -96,11 +109,13 @@ class CameraViewModel: ObservableObject {
             )
             deviceSessionStateToken = token
         }
+        #endif
     }
 
     // MARK: - デバイスの可用性監視
 
     private func observeDeviceAvailability(deviceId: String) {
+        #if canImport(MWDATCore)
         Task {
             let device = Wearables.shared.deviceForIdentifier(deviceId)
             let token = device.addLinkStateListener { [weak self] linkState in
@@ -115,11 +130,13 @@ class CameraViewModel: ObservableObject {
             }
             deviceMetadataToken = token
         }
+        #endif
     }
 
     // MARK: - Step 5: カメラの権限を管理する
 
     private func checkCameraPermission() async -> Bool {
+        #if canImport(MWDATCore)
         let cameraStatus = await Wearables.shared.cameraPermissionStatus
 
         switch cameraStatus {
@@ -134,6 +151,9 @@ class CameraViewModel: ObservableObject {
         @unknown default:
             return false
         }
+        #else
+        return false
+        #endif
     }
 
     // MARK: - Step 6: カメラストリームを開始する
@@ -147,19 +167,15 @@ class CameraViewModel: ObservableObject {
     }
 
     private func startStream() {
+        #if canImport(MWDATCamera)
         Task {
-            // カメラ権限確認
             guard await checkCameraPermission() else { return }
 
-            // StreamSession 設定
-            // 解像度: high (720x1280), medium (504x896), low (360x640)
-            // フレームレート: 2, 7, 15, 24, 30 FPS
             let config = StreamSessionConfig(
                 resolution: .medium,
                 frameRate: 15
             )
 
-            // AutoDeviceSelector を使用してデバイスを自動選択
             let deviceSelector = AutoDeviceSelector()
 
             let session = StreamSession(
@@ -169,7 +185,6 @@ class CameraViewModel: ObservableObject {
 
             streamSession = session
 
-            // フレームと状態イベントのコールバックを登録
             session.frameHandler = { [weak self] frame in
                 Task { @MainActor in
                     self?.currentFrame = frame.image
@@ -198,14 +213,18 @@ class CameraViewModel: ObservableObject {
                 }
             }
 
-            // ストリーム開始
             session.start()
         }
+        #else
+        showError(message: "MWDAT SDK が追加されていません。")
+        #endif
     }
 
     private func stopStream() {
+        #if canImport(MWDATCamera)
         streamSession?.stop()
         streamSession = nil
+        #endif
         isStreaming = false
         sessionState = "STOPPED"
         currentFrame = nil
@@ -214,21 +233,21 @@ class CameraViewModel: ObservableObject {
     // MARK: - Step 7: 写真を撮影して共有する
 
     func capturePhoto() {
+        #if canImport(MWDATCamera)
         guard let session = streamSession, isStreaming else { return }
 
         session.capturePhoto()
 
-        // photoDataPublisher で写真データを受信
         session.photoHandler = { [weak self] photoData in
             Task { @MainActor in
                 guard let self = self else { return }
                 if let image = UIImage(data: photoData.data) {
                     self.currentFrame = image
-                    // 写真をフォトライブラリに保存
                     UIImageWriteToSavedPhotosAlbum(image, nil, nil, nil)
                 }
             }
         }
+        #endif
     }
 
     // MARK: - Step 8: AI画像分析 (OpenAI Vision API)
@@ -265,7 +284,6 @@ class CameraViewModel: ObservableObject {
         Task {
             await OpenAIService.shared.setAPIKey(key)
             showAPIKeyInput = false
-            // キー保存後に自動で分析を開始
             analyzeCurrentFrame()
         }
     }
