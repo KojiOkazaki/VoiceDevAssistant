@@ -2,6 +2,26 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+    <!-- 必須キー -->
+    <key>CFBundleIdentifier</key>
+    <string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+    <key>CFBundleName</key>
+    <string>$(PRODUCT_NAME)</string>
+    <key>CFBundleDisplayName</key>
+    <string>RayBan Meta AI</string>
+    <key>CFBundleVersion</key>
+    <string>$(CURRENT_PROJECT_VERSION)</string>
+    <key>CFBundleShortVersionString</key>
+    <string>$(MARKETING_VERSION)</string>
+    <key>CFBundlePackageType</key>
+    <string>$(PRODUCT_BUNDLE_PACKAGE_TYPE)</string>
+    <key>CFBundleExecutable</key>
+    <string>$(EXECUTABLE_NAME)</string>
+    <key>CFBundleInfoDictionaryVersion</key>
+    <string>6.0</string>
+    <key>CFBundleDevelopmentRegion</key>
+    <string>$(DEVELOPMENT_LANGUAGE)</string>
+
     <!-- URL Schemes: Meta AI アプリとのコールバック用 -->
     <key>CFBundleURLTypes</key>
     <array>
@@ -36,19 +56,14 @@
     <!-- Bluetooth 使用の説明 -->
     <key>NSBluetoothAlwaysUsageDescription</key>
     <string>Ray-Ban Meta グラスと接続するために使用します</string>
-
     <key>NSBluetoothPeripheralUsageDescription</key>
     <string>Ray-Ban Meta グラスと通信するために使用します</string>
 
-    <!-- LSApplicationQueriesSchemes - Meta AI アプリを開くため -->
+    <!-- LSApplicationQueriesSchemes -->
     <key>LSApplicationQueriesSchemes</key>
     <array>
         <string>fb-metaai</string>
     </array>
-
-    <!-- アプリ表示名 -->
-    <key>CFBundleDisplayName</key>
-    <string>RayBan Meta AI</string>
 
     <!-- Scene Manifest (SwiftUI) -->
     <key>UIApplicationSceneManifest</key>
