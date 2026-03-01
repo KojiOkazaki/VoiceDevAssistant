@@ -1,10 +1,8 @@
 import Foundation
 import SwiftUI
 import Combine
-#if canImport(MWDATCore)
+#if MWDAT_ENABLED
 import MWDATCore
-#endif
-#if canImport(MWDATCamera)
 import MWDATCamera
 #endif
 
@@ -31,7 +29,7 @@ class CameraViewModel: ObservableObject {
 
     // MARK: - Private Properties
 
-    #if canImport(MWDATCamera)
+    #if MWDAT_ENABLED
     private var streamSession: StreamSession?
     #endif
     private var deviceSessionStateToken: Any?
@@ -42,7 +40,7 @@ class CameraViewModel: ObservableObject {
     // MARK: - Step 4: アプリから登録を開始する
 
     func startRegistration() {
-        #if canImport(MWDATCore)
+        #if MWDAT_ENABLED
         Task {
             do {
                 try await Wearables.shared.startRegistration()
@@ -53,18 +51,16 @@ class CameraViewModel: ObservableObject {
             }
         }
         #else
-        showError(message: "MWDAT SDK が追加されていません。Xcode で Swift Package を追加してください。")
+        showError(message: "MWDAT SDK が追加されていません。Xcode で Swift Package を追加し、Build Settings の SWIFT_ACTIVE_COMPILATION_CONDITIONS に MWDAT_ENABLED を追加してください。")
         #endif
     }
 
     // MARK: - デバイスの監視
 
     private func observeDevices() {
-        #if canImport(MWDATCore)
+        #if MWDAT_ENABLED
         Task {
             let wearables = Wearables.shared
-
-            // デバイスの検出を監視
             for await devices in wearables.devices {
                 if let device = devices.first {
                     currentDeviceId = device.identifier
@@ -81,7 +77,7 @@ class CameraViewModel: ObservableObject {
     // MARK: - デバイスセッション状態の監視
 
     private func observeDeviceSessionState(deviceId: String) {
-        #if canImport(MWDATCore)
+        #if MWDAT_ENABLED
         Task {
             let token = await Wearables.shared.addDeviceSessionStateListener(
                 forDeviceId: deviceId,
@@ -98,9 +94,7 @@ class CameraViewModel: ObservableObject {
                             self.sessionState = "STOPPED"
                             self.isStreaming = false
                             self.currentFrame = nil
-                            #if canImport(MWDATCamera)
                             self.streamSession = nil
-                            #endif
                         default:
                             break
                         }
@@ -115,7 +109,7 @@ class CameraViewModel: ObservableObject {
     // MARK: - デバイスの可用性監視
 
     private func observeDeviceAvailability(deviceId: String) {
-        #if canImport(MWDATCore)
+        #if MWDAT_ENABLED
         Task {
             let device = Wearables.shared.deviceForIdentifier(deviceId)
             let token = device.addLinkStateListener { [weak self] linkState in
@@ -136,9 +130,8 @@ class CameraViewModel: ObservableObject {
     // MARK: - Step 5: カメラの権限を管理する
 
     private func checkCameraPermission() async -> Bool {
-        #if canImport(MWDATCore)
+        #if MWDAT_ENABLED
         let cameraStatus = await Wearables.shared.cameraPermissionStatus
-
         switch cameraStatus {
         case .granted:
             return true
@@ -167,7 +160,7 @@ class CameraViewModel: ObservableObject {
     }
 
     private func startStream() {
-        #if canImport(MWDATCamera)
+        #if MWDAT_ENABLED
         Task {
             guard await checkCameraPermission() else { return }
 
@@ -175,14 +168,11 @@ class CameraViewModel: ObservableObject {
                 resolution: .medium,
                 frameRate: 15
             )
-
             let deviceSelector = AutoDeviceSelector()
-
             let session = StreamSession(
                 config: config,
                 deviceSelector: deviceSelector
             )
-
             streamSession = session
 
             session.frameHandler = { [weak self] frame in
@@ -221,7 +211,7 @@ class CameraViewModel: ObservableObject {
     }
 
     private func stopStream() {
-        #if canImport(MWDATCamera)
+        #if MWDAT_ENABLED
         streamSession?.stop()
         streamSession = nil
         #endif
@@ -233,11 +223,9 @@ class CameraViewModel: ObservableObject {
     // MARK: - Step 7: 写真を撮影して共有する
 
     func capturePhoto() {
-        #if canImport(MWDATCamera)
+        #if MWDAT_ENABLED
         guard let session = streamSession, isStreaming else { return }
-
         session.capturePhoto()
-
         session.photoHandler = { [weak self] photoData in
             Task { @MainActor in
                 guard let self = self else { return }

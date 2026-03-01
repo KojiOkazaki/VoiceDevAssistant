@@ -1,10 +1,4 @@
 import SwiftUI
-#if canImport(MWDATCore)
-import MWDATCore
-#endif
-#if canImport(MWDATCamera)
-import MWDATCamera
-#endif
 
 struct ContentView: View {
     @StateObject private var viewModel = CameraViewModel()
@@ -130,7 +124,6 @@ struct ContentView: View {
                                     Text("AI 分析結果")
                                         .font(.headline)
                                     Spacer()
-                                    // コピーボタン
                                     Button(action: {
                                         UIPasteboard.general.string = viewModel.analysisResult
                                     }) {

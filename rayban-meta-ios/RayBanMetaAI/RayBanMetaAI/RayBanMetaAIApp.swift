@@ -1,8 +1,6 @@
 import SwiftUI
-#if canImport(MWDATCore)
+#if MWDAT_ENABLED
 import MWDATCore
-#endif
-#if canImport(MWDATCamera)
 import MWDATCamera
 #endif
 
@@ -10,8 +8,8 @@ import MWDATCamera
 struct RayBanMetaAIApp: App {
 
     init() {
+        #if MWDAT_ENABLED
         // Step 3: SDK を初期化する - アプリ起動時に1回呼び出す
-        #if canImport(MWDATCore)
         Wearables.configure()
         #endif
     }
