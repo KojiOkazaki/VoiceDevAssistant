@@ -1,0 +1,3 @@
+# Meta Wearables DAT SDK
+-keep class com.meta.wearable.** { *; }
+-dontwarn com.meta.wearable.**

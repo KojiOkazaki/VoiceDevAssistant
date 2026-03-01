@@ -1,0 +1,6 @@
+# GitHub Personal Access Token (read:packages scope required)
+# Meta Wearables DAT SDK is distributed via GitHub Packages
+github_token=ghp_YOUR_GITHUB_TOKEN_HERE
+
+# OpenAI API Key (for GPT-4 Vision analysis)
+openai_api_key=sk-YOUR_OPENAI_API_KEY_HERE

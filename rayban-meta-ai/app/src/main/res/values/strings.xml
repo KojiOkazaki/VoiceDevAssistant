@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Ray-Ban Meta AI</string>
+
+    <!-- Connection -->
+    <string name="section_connection">グラス接続</string>
+    <string name="status_disconnected">未接続</string>
+    <string name="connect">接続</string>
+    <string name="disconnect">切断</string>
+    <string name="start_stream">ストリーミング開始</string>
+    <string name="stop_stream">ストリーミング停止</string>
+
+    <!-- Camera -->
+    <string name="camera_preview">カメラプレビュー</string>
+    <string name="camera_placeholder">グラスのカメラ映像がここに表示されます</string>
+
+    <!-- Analysis -->
+    <string name="section_analysis">AI分析</string>
+    <string name="analysis_mode">分析モード:</string>
+    <string name="analyze_once">分析する</string>
+    <string name="start_continuous">連続分析開始</string>
+    <string name="stop_continuous">連続分析停止</string>
+
+    <!-- Result -->
+    <string name="section_result">分析結果</string>
+    <string name="result_placeholder">グラスのカメラで見ているものをAIが分析します。\nストリーミングを開始して「分析する」を押してください。</string>
+</resources>
