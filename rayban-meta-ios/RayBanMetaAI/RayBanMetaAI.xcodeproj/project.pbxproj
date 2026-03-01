@@ -20,7 +20,6 @@
 		8A3F1B2D03 /* CameraViewModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CameraViewModel.swift; sourceTree = "<group>"; };
 		8A3F1B2D04 /* OpenAIService.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = OpenAIService.swift; sourceTree = "<group>"; };
 		8A3F1B2D05 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
-		8A3F1B2D06 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		8A3F1B2D10 /* RayBanMetaAI.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = RayBanMetaAI.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -51,7 +50,6 @@
 				8A3F1B2D03 /* CameraViewModel.swift */,
 				8A3F1B2D04 /* OpenAIService.swift */,
 				8A3F1B2D05 /* Assets.xcassets */,
-				8A3F1B2D06 /* Info.plist */,
 			);
 			path = RayBanMetaAI;
 			sourceTree = "<group>";
