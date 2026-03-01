@@ -1,86 +1,99 @@
-# Xcode プロジェクト セットアップ手順
+# Ray-Ban Meta iOS アプリ セットアップ手順
 
-## 手順1: Xcode で新規プロジェクトを作成
+## 推奨: Meta 公式サンプルアプリを使う
 
-1. Xcode を開く
-2. **File > New > Project...** (⇧⌘N)
-3. **iOS > App** を選択して Next
-4. 以下を入力:
-   - **Product Name**: `RayBanMetaAI`
-   - **Team**: 自分の Apple Developer アカウント
-   - **Organization Identifier**: `com.example` (自分のに変更可)
-   - **Interface**: **SwiftUI**
-   - **Language**: **Swift**
-   - Include Tests: チェック外してOK
-5. 保存先: `rayban-meta-ios/RayBanMetaAI/` を選択
-6. Create
+手動で xcodeproj を作成する必要はありません。Meta が提供する公式サンプルアプリをそのまま使えます。
 
-## 手順2: 自動生成されたファイルを置き換え
+### 手順1: サンプルアプリをクローン & 開く
 
-Xcode が作成した以下のファイルを、リポジトリにあるファイルで **上書き** してください:
+```bash
+git clone https://github.com/facebook/meta-wearables-dat-ios.git
+open meta-wearables-dat-ios/samples/CameraAccess/*.xcodeproj
+```
 
-| Xcode が生成したファイル | → 置き換えるファイル |
-|------------------------|-------------------|
-| `RayBanMetaAIApp.swift` | `RayBanMetaAI/RayBanMetaAI/RayBanMetaAIApp.swift` |
-| `ContentView.swift` | `RayBanMetaAI/RayBanMetaAI/ContentView.swift` |
+プロジェクトを開いたら SPM の依存関係は自動で解決されます。そのままビルドできるはずです。
 
-さらに、以下のファイルをプロジェクトに **追加** (ドラッグ&ドロップ):
-- `RayBanMetaAI/RayBanMetaAI/CameraViewModel.swift`
+### 手順2: Signing を設定
 
-## 手順3: Meta Wearables DAT SDK を追加 (Swift Package Manager)
+1. Xcode > プロジェクト設定 > **Signing & Capabilities**
+2. **Team**: 自分の Apple Developer アカウントを選択
+3. **Bundle Identifier**: `com.cbt.mrbtest`
 
-1. Xcode > **File > Add Package Dependencies...**
-2. 右上の検索欄に入力:
-   ```
-   https://github.com/facebook/meta-wearables-dat-ios
-   ```
-3. `meta-wearables-dat-ios` を選択
-4. Dependency Rule: **Up to Next Major Version** → `0.4.0`
-5. **Add Package** をクリック
-6. ターゲット `RayBanMetaAI` に以下の3つを追加:
-   - ✅ **MWDATCore**
-   - ✅ **MWDATCamera**
-   - ✅ **MWDATMockDevice**
-7. **Add Package** をクリック
+### 手順3: Info.plist を編集
 
-## 手順4: Info.plist を設定
+サンプルアプリの Info.plist に以下の `MWDAT` キーを追加します。
+Xcode UI または Info.plist ファイルを直接編集してください。
 
-Xcode のプロジェクトナビゲーターで Info.plist を開き、以下のキーを追加:
+```xml
+<key>MWDAT</key>
+<dict>
+    <key>MetaAppID</key>
+    <string>4225976931002254</string>
+    <key>Analytics</key>
+    <dict>
+        <key>OptOut</key>
+        <true/>
+    </dict>
+    <key>AppLinkURLScheme</key>
+    <string>https://kojiokazaki.github.io/dat-link/</string>
+</dict>
+```
 
-### 方法A: Xcode UI で追加
+また、`CFBundleURLTypes` にも URL スキームを追加:
 
-| Key | Type | Value |
-|-----|------|-------|
-| `CFBundleURLTypes` | Array | (下記参照) |
-| `LinkURLScheme` | String | `raybanmetaai` |
-| `MetaAppID` | String | (空文字列 - 開発者モード用) |
-| `NSCameraUsageDescription` | String | `Ray-Ban Meta グラスのカメラストリームを受信するために使用します` |
-| `NSBluetoothAlwaysUsageDescription` | String | `Ray-Ban Meta グラスと接続するために使用します` |
-| `LSApplicationQueriesSchemes` | Array | `fb-metaai` |
+```xml
+<key>CFBundleURLTypes</key>
+<array>
+    <dict>
+        <key>CFBundleURLSchemes</key>
+        <array>
+            <string>https://kojiokazaki.github.io/dat-link/</string>
+        </array>
+        <key>CFBundleURLName</key>
+        <string>com.cbt.mrbtest</string>
+    </dict>
+</array>
+```
 
-#### URL Schemes の設定:
-1. Info.plist > URL Types > + ボタン
-2. URL Schemes: `raybanmetaai`
-3. Identifier: `com.example.raybanmetaai`
+**重要**: `AppLinkURLScheme` と `CFBundleURLSchemes` の値は同一にすること。
 
-### 方法B: リポジトリの Info.plist で上書き
-
-`RayBanMetaAI/RayBanMetaAI/Info.plist` をそのまま使用。
-ただし Xcode のビルド設定で **Generate Info.plist File = NO** に設定し、
-**Info.plist File** パスを `RayBanMetaAI/Info.plist` に設定してください。
-
-## 手順5: ビルド設定の確認
-
-1. プロジェクト設定 > General:
-   - **Minimum Deployments**: iOS 15.2
-   - **Bundle Identifier**: `com.example.raybanmetaai` (自分のに変更)
-
-2. Signing & Capabilities:
-   - **Team**: 自分のアカウント
-   - **Automatically manage signing**: ✅ ON
-
-## 手順6: iPhone 実機で実行
+### 手順4: アプリの起動 & 接続
 
 1. iPhone を USB で Mac に接続
-2. Xcode 上部のデバイス選択で iPhone を選択
-3. ▶ Run (⌘R) でビルド & インストール
+2. Xcode 上部でデバイスを選択
+3. **Run (⌘R)** でビルド & インストール
+4. 自作アプリと Meta AI アプリを行き来して動画ストリーミングを開始
+
+動かない場合の確認ポイント:
+- MetaAppID が正しいか
+- URL スキーマの設定が一致しているか
+- Meta AI アプリ (v254+) でグラスが接続済みか
+
+### カメラ設定
+
+| 解像度 | サイズ |
+|--------|--------|
+| 高 | 720 x 1280 |
+| 中 | 504 x 896 |
+| 低 | 360 x 640 |
+
+フレームレート: 2, 7, 15, 24, 30 fps
+
+帯域幅が不足すると自動的に解像度 → フレームレートの順で段階的に下がります (15fps 未満にはならない)。
+
+### ハードウェアなしでテスト (Mock Device)
+
+Mock Device Kit を使えば、Ray-Ban Meta グラスがなくても開発・テストが可能です。
+`MWDATMockDevice` パッケージを追加して使用してください。
+
+---
+
+## 参考: カスタムアプリを新規作成する場合
+
+サンプルアプリを改造するのではなく、ゼロから作りたい場合:
+
+1. Xcode > **File > New > Project...** > iOS > App (SwiftUI)
+2. **File > Add Package Dependencies...** で `https://github.com/facebook/meta-wearables-dat-ios` を追加
+3. MWDATCore, MWDATCamera, MWDATMockDevice を選択
+4. Info.plist に上記の MWDAT 設定を追加
+5. `RayBanMetaAI/RayBanMetaAI/` 内の Swift ファイルを参考にコードを記述
