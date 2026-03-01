@@ -1,7 +1,9 @@
 import SwiftUI
+import PhotosUI
 
 struct ContentView: View {
     @StateObject private var viewModel = CameraViewModel()
+    @State private var selectedPhoto: PhotosPickerItem?
 
     var body: some View {
         NavigationView {
@@ -10,7 +12,7 @@ struct ContentView: View {
                     // ステータス表示
                     StatusBadge(state: viewModel.sessionState)
 
-                    // カメラプレビュー
+                    // カメラプレビュー / 選択画像
                     if let image = viewModel.currentFrame {
                         Image(uiImage: image)
                             .resizable()
@@ -30,30 +32,40 @@ struct ContentView: View {
                     }
 
                     // コントロールボタン
-                    HStack(spacing: 16) {
+                    HStack(spacing: 12) {
+                        // 写真選択ボタン（SDK無しでもAI分析テスト可能）
+                        PhotosPicker(selection: $selectedPhoto, matching: .images) {
+                            Label("写真を選択", systemImage: "photo.on.rectangle")
+                                .font(.headline)
+                                .frame(maxWidth: .infinity)
+                                .padding()
+                                .background(Color.blue)
+                                .foregroundColor(.white)
+                                .cornerRadius(12)
+                        }
+                        .onChange(of: selectedPhoto) { newItem in
+                            guard let newItem else { return }
+                            Task {
+                                if let data = try? await newItem.loadTransferable(type: Data.self),
+                                   let uiImage = UIImage(data: data) {
+                                    viewModel.setTestImage(uiImage)
+                                }
+                            }
+                        }
+
+                        // カメラストリームボタン
                         Button(action: { viewModel.toggleStream() }) {
                             Label(
-                                viewModel.isStreaming ? "停止" : "開始",
-                                systemImage: viewModel.isStreaming ? "stop.circle.fill" : "play.circle.fill"
+                                viewModel.isStreaming ? "停止" : "ストリーム",
+                                systemImage: viewModel.isStreaming ? "stop.circle.fill" : "video.circle.fill"
                             )
                             .font(.headline)
                             .frame(maxWidth: .infinity)
                             .padding()
-                            .background(viewModel.isStreaming ? Color.red : Color.blue)
-                            .foregroundColor(.white)
+                            .background(viewModel.isStreaming ? Color.red : Color(.systemGray4))
+                            .foregroundColor(viewModel.isStreaming ? .white : .primary)
                             .cornerRadius(12)
                         }
-
-                        Button(action: { viewModel.capturePhoto() }) {
-                            Label("撮影", systemImage: "camera.circle.fill")
-                                .font(.headline)
-                                .frame(maxWidth: .infinity)
-                                .padding()
-                                .background(viewModel.isStreaming ? Color.green : Color.gray)
-                                .foregroundColor(.white)
-                                .cornerRadius(12)
-                        }
-                        .disabled(!viewModel.isStreaming)
                     }
                     .padding(.horizontal)
 
@@ -144,20 +156,6 @@ struct ContentView: View {
                         }
                     }
 
-                    // 登録ボタン
-                    if !viewModel.isRegistered {
-                        Button(action: { viewModel.startRegistration() }) {
-                            Label("Meta AI アプリに登録", systemImage: "link.circle.fill")
-                                .font(.headline)
-                                .frame(maxWidth: .infinity)
-                                .padding()
-                                .background(Color.orange)
-                                .foregroundColor(.white)
-                                .cornerRadius(12)
-                        }
-                        .padding(.horizontal)
-                    }
-
                     // APIキー設定ボタン
                     Button(action: {
                         viewModel.loadAPIKey()
@@ -201,7 +199,7 @@ struct APIKeyInputView: View {
                     .font(.title2)
                     .fontWeight(.bold)
 
-                Text("GPT-4o Vision APIを使用して\nカメラ映像を分析します")
+                Text("GPT-4o Vision APIを使用して\n画像を分析します")
                     .font(.subheadline)
                     .foregroundColor(.secondary)
                     .multilineTextAlignment(.center)
@@ -283,7 +281,7 @@ struct PlaceholderView: View {
             Image(systemName: "eyeglasses")
                 .font(.system(size: 60))
                 .foregroundColor(.secondary)
-            Text("Ray-Ban Meta グラスに接続してください")
+            Text("写真を選択して AI 分析を試せます")
                 .font(.subheadline)
                 .foregroundColor(.secondary)
                 .multilineTextAlignment(.center)
